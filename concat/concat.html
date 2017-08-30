@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>exec wasm code</title>
+</head>
+
+<body>
+    <h2>Concat a + b</h2>
+    <input type="text" name="" id="a"><br>
+    <input type="text" name="" id="b"><br>
+    <span id="result"></span>
+
+    <script type='text/javascript'>
+        const namePrefix = 'concat_c'
+        var Module = {
+            preRun: [],
+            postRun: [],
+            wasmBinaryFile: `${namePrefix}.wasm`,
+            noInitialRun: true,
+            print: text => {
+                console.log(text)
+            },
+            printErr: text => {
+                console.warn(text)
+            }
+        }
+        fetch(`${namePrefix}.wasm`)
+            .then(resp => resp.arrayBuffer())
+            .then(ab => {
+                Module.wasmBinary = ab
+                return new Promise(resolve => {
+                    const script = document.createElement('script')
+                    script.src = `${namePrefix}.js`
+                    script.addEventListener('load', resolve)
+                    document.body.appendChild(script)
+                })
+            })
+            .then(() => {
+                const concat = Module.cwrap('concat_c', 'string', ['string', 'string'])
+                const aEl = document.querySelector('#a')
+                const bEl = document.querySelector('#b')
+                const resultEl = document.querySelector('#result')
+
+                const callback = () => {
+                    const a = aEl.value
+                    const b = bEl.value
+                    resultEl.innerText = `${concat(a, b)}`
+                }
+
+                aEl.addEventListener("keyup", callback);
+                bEl.addEventListener("keyup", callback);
+
+            })
+    </script>
+
+</body>
+</html>

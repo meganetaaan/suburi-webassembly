@@ -1,0 +1,4 @@
+node_modules/
+*.wasm
+*.asm.js
+*.un~
