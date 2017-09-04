@@ -1,0 +1,1 @@
+rustc --target wasm32-unknown-emscripten -Clink_args="--js-library ./emcc-bind.js -s ASYNCIFY=1 -s ASYNCIFY_FUNCTIONS=['emscripten_sleep','emscripten_async_resume','exec_async'] -s RESERVED_FUNCTION_POINTERS=20" .\async_result_container.rs
