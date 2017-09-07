@@ -11,13 +11,13 @@ impl Rand {
     }
 
     fn rand(&mut self) -> u32 {
-        let x = self.seed as u64;
-        self.seed = ((69069 * x + 1) & RAND_MAX as u64) as u32;
+        let x = u64::from(self.seed);
+        self.seed = ((69_069 * x + 1) & u64::from(RAND_MAX)) as u32;
         self.seed
     }
 
     fn random(&mut self) -> f64 {
-        (1.0 / (RAND_MAX as f64 + 1.0)) * self.rand() as f64
+        (1.0 / (f64::from(RAND_MAX) as f64 + 1.0)) * f64::from(self.rand())
     }
 }
 
@@ -148,9 +148,11 @@ impl Maze {
         for iy in 0..self.ly + 1{
             let mut s = String::new();
             for ix in 0..self.lx{
-                let c: char = match self.bond_v[self.lx * iy + ix] {
-                    true => space,
-                    _ => vwall
+                let is_wall: bool = self.bond_v[self.lx * iy + ix]; 
+                let c: char = if is_wall {
+                    space
+                } else {
+                    vwall
                 };
                 s.push(cross);
                 s.push(c);
@@ -170,6 +172,6 @@ impl Maze {
 }
 
 fn main() {
-    let mut maze: Maze = Maze::new(80, 0);
+    let mut maze: Maze = Maze::new(200, 0);
     maze.print();
 }
