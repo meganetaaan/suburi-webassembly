@@ -32,29 +32,30 @@ struct Maze {
 }
 
 impl Maze {
-    pub fn new(x: usize, seed: u32) -> Self{
+    pub fn new(lx: usize, ly: usize, seed: u32) -> Self{
         // 縦、横のサイズが同じ前提
         let rand = Rand::new(seed);
-        let size = (x + 1) * x;
-        let point_size = x * x * 2;
+        let bond_h_size = (lx + 1) * ly;
+        let bond_v_size = lx * (ly + 1);
+        let point_size = lx * ly;
 
-        let mut bond_h = Vec::with_capacity(size);
-        for _ in 0..size {
+        let mut bond_h = Vec::with_capacity(bond_h_size);
+        for _ in 0..bond_h_size {
             bond_h.push(false);
         }
-        let mut bond_v = Vec::with_capacity(size);
-        for _ in 0..size {
+        let mut bond_v = Vec::with_capacity(bond_v_size);
+        for _ in 0..bond_v_size {
             bond_v.push(false);
         }
-        let mut point = Vec::with_capacity(size);
+        let mut point = Vec::with_capacity(point_size);
         for i in 0..point_size {
             point.push(i);
         }
 
         let mut maze: Maze = Maze {
             rand: rand,
-            lx: x,
-            ly: x,
+            lx: lx,
+            ly: ly,
             bond_h: bond_h,
             bond_v: bond_v,
             point: point,
@@ -121,7 +122,8 @@ impl Maze {
         self.bond_h[(self.lx + 1) * self.ly - 1] = true;
     }
 
-    fn print(&mut self) {
+    #[allow(dead_code)]
+    fn print(&self) {
         let vwall: char = '-';
         let hwall: char = '|';
         let cross: char = '+';
@@ -171,7 +173,25 @@ impl Maze {
     }
 }
 
+#[no_mangle]
+pub extern "C" fn wasm_array_to_js(_len: i32, ptr: *mut f32, lx: i32, ly: i32, seed: i32) {
+    let lx = lx as usize;
+    let ly = ly as usize;
+    let seed = seed as u32;
+    let maze: Maze = Maze::new(lx, ly, seed);
+    let len = _len as usize;
+    let mut v: Vec<bool> = Vec::new();
+    v.extend(&maze.bond_h);
+    v.extend(&maze.bond_v);
+    let v = v.into_iter().map(|is_open|if is_open {1.0} else {0.0}).collect::<Vec<f32>>();
+    // TODO: Maze側のメソッドにする
+    let mut res: &mut [f32] = unsafe { std::slice::from_raw_parts_mut(ptr, len) };
+    res.clone_from_slice(&v.as_slice())
+}
+
 fn main() {
-    let mut maze: Maze = Maze::new(200, 0);
+    /*
+    let maze: Maze = Maze::new(200, 0);
     maze.print();
+    */
 }
